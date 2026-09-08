@@ -1,48 +1,35 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Room } from './entities/room.entity';
 import { CreateRoomDto } from './dto/create-room.dto';
-
-export type Room = {
-	id: number;
-	name: string;
-	capacity?: number;
-	[key: string]: any;
-};
 
 @Injectable()
 export class RoomsService {
-	private rooms: Room[] = [];
-	private nextId = 1;
+	constructor(
+		@InjectRepository(Room)
+		private readonly roomsRepository: Repository<Room>,
+	) {}
 
-	create(createRoomDto: CreateRoomDto): Room {
-		const room: Room = {
-			id: this.nextId++,
-			...createRoomDto,
-		};
-		this.rooms.push(room);
+	async create(createRoomDto: CreateRoomDto): Promise<Room> {
+		const existingRoom = await this.roomsRepository.findOneBy({ name: createRoomDto.name });
+		if (existingRoom) {
+			throw new ConflictException(`Room with name "${createRoomDto.name}" already exists`);
+		}
+
+		const room = this.roomsRepository.create(createRoomDto);
+		return this.roomsRepository.save(room);
+	}
+
+	findAll(): Promise<Room[]> {
+		return this.roomsRepository.find();
+	}
+
+	async findOne(id: number): Promise<Room> {
+		const room = await this.roomsRepository.findOneBy({ id });
+		if (!room) {
+			throw new NotFoundException(`Room with id ${id} not found`);
+		}
 		return room;
-	}
-
-	findAll(): Room[] {
-		return [...this.rooms];
-	}
-
-	findOne(id: number): Room {
-		const room = this.rooms.find(r => r.id === id);
-		if (!room) throw new NotFoundException(`Room with id ${id} not found`);
-		return room;
-	}
-
-	update(id: number, partial: Partial<CreateRoomDto>): Room {
-		const idx = this.rooms.findIndex(r => r.id === id);
-		if (idx === -1) throw new NotFoundException(`Room with id ${id} not found`);
-		const updated = { ...this.rooms[idx], ...partial };
-		this.rooms[idx] = updated;
-		return updated;
-	}
-
-	remove(id: number): void {
-		const idx = this.rooms.findIndex(r => r.id === id);
-		if (idx === -1) throw new NotFoundException(`Room with id ${id} not found`);
-		this.rooms.splice(idx, 1);
 	}
 }

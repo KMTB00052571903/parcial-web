@@ -1,53 +1,71 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-
-
-export class CreateScreeningDto {
-  customer: string = '';
-  item: string = '';
-}
-
-
-export interface Order {
-  id: number;
-  customer: string;
-  item: string;
-  status: 'pending' | 'ready' | string;
-}
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Screening, ScreeningStatus } from './entities/screening.entity';
+import { Room } from '../rooms/entities/room.entity';
+import { CreateScreeningDto } from './dto/create-screening.dto';
+import { UpdateScreeningDto } from './dto/update-screening.dto';
 
 @Injectable()
 export class ScreeningService {
-  private orders: Order[] = [
-    { id: 1, customer: 'Laura', item: 'Café latte', status: 'pending' },
-    { id: 2, customer: 'Mateo', item: 'Sándwich', status: 'ready' },
-  ];
+  constructor(
+    @InjectRepository(Screening)
+    private readonly screeningsRepository: Repository<Screening>,
+    @InjectRepository(Room)
+    private readonly roomsRepository: Repository<Room>,
+  ) {}
 
-  findAll(status?: string): Order[] {
-    if (!status) {
-      return this.orders;
+  async create(createScreeningDto: CreateScreeningDto) {
+    const room = await this.roomsRepository.findOneBy({ id: createScreeningDto.roomId });
+    if (!room) {
+      throw new NotFoundException(`Room with id ${createScreeningDto.roomId} not found`);
     }
 
-    return this.orders.filter((order) => order.status === status);
+    const screening = this.screeningsRepository.create({
+      movieTitle: createScreeningDto.movieTitle,
+      startsAt: new Date(createScreeningDto.startsAt),
+      status: ScreeningStatus.SCHEDULED,
+      room,
+    });
+
+    return this.screeningsRepository.save(screening);
   }
 
-  findOne(id: number): Order {
-    const order = this.orders.find((currentOrder) => currentOrder.id === id);
+  findAll() {
+    return this.screeningsRepository.find();
+  }
 
-    if (!order) {
-      throw new NotFoundException(`Order with id ${id} was not found`);
+  async findOne(id: number) {
+    const screening = await this.screeningsRepository.findOneBy({ id });
+    if (!screening) {
+      throw new NotFoundException(`Screening with id ${id} not found`);
+    }
+    return screening;
+  }
+
+  async update(id: number, updateScreeningDto: UpdateScreeningDto) {
+    const screening = await this.findOne(id);
+
+    if (updateScreeningDto.movieTitle !== undefined) {
+      screening.movieTitle = updateScreeningDto.movieTitle;
+    }
+    if (updateScreeningDto.startsAt !== undefined) {
+      screening.startsAt = new Date(updateScreeningDto.startsAt);
+    }
+    if (updateScreeningDto.status !== undefined) {
+      screening.status = updateScreeningDto.status;
     }
 
-    return order;
+    return this.screeningsRepository.save(screening);
   }
 
-  create(createScreeningDto: CreateScreeningDto): Order {
-    const newOrder: Order = {
-      id: this.orders.length + 1,
-      customer: createScreeningDto.customer,
-      item: createScreeningDto.item,
-      status: 'pending',
-    };
+  async remove(id: number) {
+    const screening = await this.findOne(id);
+    await this.screeningsRepository.remove(screening);
+  }
 
-    this.orders.push(newOrder);
-    return newOrder;
+  async removeCancelled() {
+    const result = await this.screeningsRepository.delete({ status: ScreeningStatus.CANCELLED });
+    return { deleted: result.affected ?? 0 };
   }
 }

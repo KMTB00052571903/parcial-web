@@ -7,7 +7,7 @@ export enum ScreeningStatus {
 }
 
 @Entity('screenings')
-export class ScreeningEntity {
+export class Screening {
   @PrimaryGeneratedColumn()
   id: number;
 

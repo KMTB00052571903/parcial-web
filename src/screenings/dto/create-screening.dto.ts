@@ -1,4 +1,4 @@
-import { IsString, IsDate, IsInt, IsPositive, IsNotEmpty } from 'class-validator';
+import { IsString, IsDateString, IsInt, IsPositive, IsNotEmpty } from 'class-validator';
 
 export class CreateScreeningDto {
     @IsNotEmpty()
@@ -6,8 +6,8 @@ export class CreateScreeningDto {
     movieTitle!: string;
 
     @IsNotEmpty()
-    @IsDate()
-    startsAt!: Date;
+    @IsDateString()
+    startsAt!: string;
 
     @IsNotEmpty()
     @IsInt()

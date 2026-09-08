@@ -30,6 +30,11 @@ export class ScreeningController {
     return this.screeningService.update(id, updateScreeningDto);
   }
 
+  @Delete('cancelled')
+  removeCancelled() {
+    return this.screeningService.removeCancelled();
+  }
+
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.screeningService.remove(id);

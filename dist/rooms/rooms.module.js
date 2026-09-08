@@ -6,15 +6,21 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AppService = void 0;
+exports.RoomsModule = void 0;
 const common_1 = require("@nestjs/common");
-let AppService = class AppService {
-    getHello() {
-        return "Hello World!";
-    }
+const typeorm_1 = require("@nestjs/typeorm");
+const rooms_service_1 = require("./rooms.service");
+const rooms_controller_1 = require("./rooms.controller");
+const room_entity_1 = require("./entities/room.entity");
+let RoomsModule = class RoomsModule {
 };
-exports.AppService = AppService;
-exports.AppService = AppService = __decorate([
-    (0, common_1.Injectable)()
-], AppService);
-//# sourceMappingURL=app.service.js.map
+exports.RoomsModule = RoomsModule;
+exports.RoomsModule = RoomsModule = __decorate([
+    (0, common_1.Module)({
+        imports: [typeorm_1.TypeOrmModule.forFeature([room_entity_1.Room])],
+        controllers: [rooms_controller_1.RoomsController],
+        providers: [rooms_service_1.RoomsService],
+        exports: [rooms_service_1.RoomsService],
+    })
+], RoomsModule);
+//# sourceMappingURL=rooms.module.js.map

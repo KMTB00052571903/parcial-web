@@ -1,9 +1,5 @@
 import { IsDateString, IsEnum, IsOptional, IsString, MinLength } from 'class-validator';
-
-export enum ScreeningStatus {
-  SCHEDULED = 'scheduled',
-  CANCELLED = 'cancelled',
-}
+import { ScreeningStatus } from '../entities/screening.entity';
 
 export class UpdateScreeningDto {
   @IsOptional()
