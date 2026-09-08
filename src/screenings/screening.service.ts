@@ -1,9 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
-// DTO
+
 export class CreateScreeningDto {
-  customer: string;
-  item: string;
+  customer: string = '';
+  item: string = '';
 }
 
 
