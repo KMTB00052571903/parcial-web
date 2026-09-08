@@ -1,6 +1,11 @@
+import { IsString, IsNotEmpty, IsInt, IsPositive } from 'class-validator';
+
 export class CreateRoomDto {
-    name!:string;
+    @IsString()
+    @IsNotEmpty()
+    name!: string;
+
+    @IsInt()
+    @IsPositive()
     capacity!: number;
-    
-    
 }
